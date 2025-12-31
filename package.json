@@ -1,8 +1,8 @@
 {
   "name": "zhipu-ai-provider",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.1",
   "description": "Vercel AI SDK Custom Provider for Services from Zhipu",
-  "author": "Chen Xiang",
+  "author": "wuzhiguocarter <wuzhiguocarter@gmail.com>",
   "license": "Apache-2.0",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -19,9 +19,14 @@
     "lint": "eslint \"./**/*.ts*\"",
     "type-check": "tsc --noEmit",
     "prettier-check": "prettier --check \"./**/*.ts*\"",
-    "test": "pnpm test:node && pnpm test:edge",
+    "test": "pnpm test:unit && pnpm test:integration",
+    "test:unit": "vitest --config vitest.node.config.js --run",
+    "test:node": "vitest --config vitest.node.config.js --run",
     "test:edge": "vitest --config vitest.edge.config.js --run",
-    "test:node": "vitest --config vitest.node.config.js --run"
+    "test:integration": "vitest --config vitest.integration.config.js --run",
+    "test:integration:watch": "vitest --config vitest.integration.config.js",
+    "test:watch": "vitest --config vitest.node.config.js",
+    "test:coverage": "vitest --config vitest.integration.config.js --coverage"
   },
   "exports": {
     "./package.json": "./package.json",
@@ -32,21 +37,21 @@
     }
   },
   "dependencies": {
-    "@ai-sdk/provider": "2.0.0-beta.1",
-    "@ai-sdk/provider-utils": "3.0.0-beta.5",
-    "zhipu-ai-provider": "link:../../Library/pnpm/global/5/node_modules/zhipu-ai-provider"
+    "@ai-sdk/provider": "^2.0.0",
+    "@ai-sdk/provider-utils": "^3.0.0"
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
     "@eslint/js": "^9.21.0",
     "@types/node": "^18",
-    "ai": "5.0.0-beta.25",
+    "ai": "^5.0.102",
     "eslint": "^9.21.0",
+    "msw": "^2.12.7",
     "tsup": "^8",
     "typescript": "5.6.3",
     "typescript-eslint": "^8.26.0",
     "vitest": "^3.0.7",
-    "zod": "4.0.5"
+    "zod": "^4.1.8"
   },
   "engines": {
     "node": ">=18"

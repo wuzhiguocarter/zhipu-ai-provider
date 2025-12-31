@@ -2,11 +2,11 @@ import {
   LanguageModelV2,
   LanguageModelV2CallWarning,
   UnsupportedFunctionalityError,
-} from "ai";
+} from "@ai-sdk/provider";
 
 export function prepareTools(
-  mode: Parameters<LanguageModelV2["doGenerate"]>[0]["mode"] & {
-    type: "regular";
+  options: Parameters<LanguageModelV2["doGenerate"]>[0] & {
+    mode: { type: "regular" };
   },
 ): {
   tools:
@@ -23,7 +23,7 @@ export function prepareTools(
   toolWarnings: LanguageModelV2CallWarning[];
 } {
   // when the tools array is empty, change it to undefined to prevent errors:
-  const tools = mode.tools?.length ? mode.tools : undefined;
+  const tools = options.tools?.length ? options.tools : undefined;
   const toolWarnings: LanguageModelV2CallWarning[] = [];
 
   if (tools == null) {
@@ -48,13 +48,13 @@ export function prepareTools(
         function: {
           name: tool.name,
           description: tool.description,
-          parameters: tool.parameters,
+          parameters: tool.inputSchema,
         },
       });
     }
   }
 
-  const toolChoice = mode.toolChoice;
+  const toolChoice = options.toolChoice;
 
   if (toolChoice == null) {
     return { tools: zhipuTools, tool_choice: undefined, toolWarnings };

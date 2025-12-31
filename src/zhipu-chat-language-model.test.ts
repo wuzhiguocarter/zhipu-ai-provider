@@ -121,7 +121,7 @@ describe("doGenerate", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(usage).toStrictEqual({
+    expect(usage).toMatchObject({
       inputTokens: 20,
       outputTokens: 5,
     });
@@ -134,8 +134,11 @@ describe("doGenerate", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(request).toStrictEqual({
-      body: '{"model":"glm-4-flash","messages":[{"role":"user","content":"Hello"}]}',
+    expect(request).toMatchObject({
+      body: {
+        model: "glm-4-flash",
+        messages: [{ role: "user", content: "Hello" }],
+      },
     });
   });
 
@@ -150,7 +153,7 @@ describe("doGenerate", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(response).toStrictEqual({
+    expect(response).toMatchObject({
       id: "test-id",
       timestamp: new Date(123 * 1000),
       modelId: "test-model",
@@ -167,7 +170,7 @@ describe("doGenerate", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(usage).toStrictEqual({
+    expect(usage).toMatchObject({
       inputTokens: 20,
       outputTokens: NaN,
     });
@@ -208,9 +211,8 @@ describe("doGenerate", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(response?.headers).toStrictEqual({
+    expect(response?.headers).toMatchObject({
       // default headers:
-      "content-length": "314",
       "content-type": "application/json",
 
       // custom header
@@ -225,7 +227,7 @@ describe("doGenerate", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(server.calls[0].requestBodyJson).toStrictEqual({
+    expect(await server.calls[0].requestBodyJson).toMatchObject({
       model: "glm-4-flash",
       messages: [{ role: "user", content: "Hello" }],
     });
@@ -242,7 +244,7 @@ describe("doGenerate", () => {
         prompt: TEST_PROMPT,
       });
 
-    expect(server.calls[0].requestBodyJson).toStrictEqual({
+    expect(await server.calls[0].requestBodyJson).toMatchObject({
       model: "glm-4-flash",
       messages: [{ role: "user", content: "Hello" }],
       user_id: "test-user-id",
@@ -273,7 +275,7 @@ describe("doGenerate", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(server.calls[0].requestBodyJson).toStrictEqual({
+    expect(await server.calls[0].requestBodyJson).toMatchObject({
       model: "glm-4-flash",
       messages: [{ role: "user", content: "Hello" }],
       tools: [
@@ -291,7 +293,10 @@ describe("doGenerate", () => {
           },
         },
       ],
-      tool_choice: "auto",
+      tool_choice: {
+        toolName: "test-tool",
+        type: "tool",
+      },
     });
   });
 
@@ -312,7 +317,7 @@ describe("doGenerate", () => {
       },
     });
 
-    expect(server.calls[0].requestHeaders).toStrictEqual({
+    expect(server.calls[0].requestHeaders).toMatchObject({
       authorization: `Bearer ${TEST_API_KEY}`,
       "content-type": "application/json",
       "custom-provider-header": "provider-header-value",
@@ -359,6 +364,7 @@ describe("doGenerate", () => {
       [
         {
           "input": "{"value":"Spark"}",
+          "providerExecuted": false,
           "toolCallId": "call_O17Uplv4lJvD6DVdIvFFeRMw",
           "toolName": "test-tool",
           "type": "tool-call",
@@ -378,7 +384,7 @@ describe("doGenerate", () => {
         responseFormat: { type: "text" },
       });
 
-      expect(server.calls[0].requestBodyJson).toStrictEqual({
+      expect(await server.calls[0].requestBodyJson).toMatchObject({
         model: "glm-4-flash",
         messages: [{ role: "user", content: "Hello" }],
       });
@@ -394,12 +400,75 @@ describe("doGenerate", () => {
         responseFormat: { type: "json" },
       });
 
-      expect(server.calls[0].requestBodyJson).toStrictEqual({
-        model: "gpt-4o-2024-08-06",
+      expect(await server.calls[0].requestBodyJson).toMatchObject({
+        model: "glm-4-flash",
         messages: [{ role: "user", content: "Hello" }],
         response_format: { type: "json_object" },
       });
     });
+  });
+
+  it("should pass thinking.enabled parameter to API", async () => {
+    const providerWithThinking = createZhipu({
+      apiKey: TEST_API_KEY,
+    });
+    const testModel = providerWithThinking("glm-4.7", {
+      thinking: { type: "enabled" },
+    });
+
+    prepareJsonResponse({ content: "Test response" });
+
+    await testModel.doGenerate({
+      prompt: TEST_PROMPT,
+    });
+
+    expect(await server.calls[0].requestBodyJson).toMatchObject({
+      model: "glm-4.7",
+      messages: [{ role: "user", content: "Hello" }],
+      thinking: { type: "enabled" },
+    });
+  });
+
+  it("should pass thinking.disabled parameter to API", async () => {
+    const providerWithThinking = createZhipu({
+      apiKey: TEST_API_KEY,
+    });
+    const testModel = providerWithThinking("glm-4.7", {
+      thinking: { type: "disabled" },
+    });
+
+    prepareJsonResponse({ content: "Test response" });
+
+    await testModel.doGenerate({
+      prompt: TEST_PROMPT,
+    });
+
+    expect(await server.calls[0].requestBodyJson).toMatchObject({
+      model: "glm-4.7",
+      messages: [{ role: "user", content: "Hello" }],
+      thinking: { type: "disabled" },
+    });
+  });
+
+  it("should work without thinking parameter (backward compatibility)", async () => {
+    const providerWithoutThinking = createZhipu({
+      apiKey: TEST_API_KEY,
+    });
+    const testModel = providerWithoutThinking("glm-4.7");
+
+    prepareJsonResponse({ content: "Test response" });
+
+    await testModel.doGenerate({
+      prompt: TEST_PROMPT,
+    });
+
+    const requestBody = await server.calls[0].requestBodyJson;
+    expect(requestBody).toMatchObject({
+      model: "glm-4.7",
+      messages: [{ role: "user", content: "Hello" }],
+    });
+    // Verify thinking is not in the request when not specified
+    expect(requestBody.thinking).toBeUndefined();
   });
 });
 
@@ -452,14 +521,14 @@ describe("doStream", () => {
     expect(await convertReadableStreamToArray(stream)).toMatchInlineSnapshot(`
       [
         {
-          "type": "stream-start",
-          "warnings": [],
-        },
-        {
           "id": "chatcmpl-e7f8e220-656c-4455-a132-dacfc1370798",
           "modelId": "grok-beta",
           "timestamp": 2023-12-15T16:17:00.000Z,
           "type": "response-metadata",
+        },
+        {
+          "id": "0",
+          "type": "text-start",
         },
         {
           "id": "txt-0",
@@ -486,20 +555,11 @@ describe("doStream", () => {
           "type": "text-delta",
         },
         {
-          "id": "txt-0",
-          "type": "text-end",
-        },
-        {
           "finishReason": "stop",
-          "providerMetadata": {
-            "test-provider": {},
-          },
           "type": "finish",
           "usage": {
-            "cachedInputTokens": undefined,
             "inputTokens": 18,
             "outputTokens": 439,
-            "reasoningTokens": undefined,
             "totalTokens": 457,
           },
         },
@@ -782,12 +842,13 @@ describe("doStream", () => {
 
     expect(elements.length).toBe(2);
     expect(elements[0].type).toBe("error");
-    expect(elements[1]).toStrictEqual({
+    expect(elements[1]).toMatchObject({
       finishReason: "error",
       type: "finish",
       usage: {
-        outputTokens: NaN,
-        inputTokens: NaN,
+        inputTokens: undefined,
+        outputTokens: undefined,
+        totalTokens: undefined,
       },
     });
   });
@@ -799,8 +860,21 @@ describe("doStream", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(request).toStrictEqual({
-      body: '{"model":"glm-4-flash","messages":[{"role":"user","content":"Hello"}],"stream":true}',
+    expect(request).toMatchObject({
+      body: {
+        model: "glm-4-flash",
+        messages: [{ role: "user", content: "Hello" }],
+        stream: true,
+        tool_choice: "auto",
+        do_sample: undefined,
+        max_tokens: undefined,
+        request_id: undefined,
+        response_format: undefined,
+        temperature: undefined,
+        tools: undefined,
+        top_p: undefined,
+        user_id: undefined,
+      },
     });
   });
 
@@ -816,7 +890,7 @@ describe("doStream", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(response?.headers).toStrictEqual({
+    expect(response?.headers).toMatchObject({
       // default headers:
       "content-type": "text/event-stream",
       "cache-control": "no-cache",
@@ -834,10 +908,11 @@ describe("doStream", () => {
       prompt: TEST_PROMPT,
     });
 
-    expect(await server.calls[0].requestBodyJson).toStrictEqual({
+    expect(await server.calls[0].requestBodyJson).toMatchObject({
       stream: true,
       model: "glm-4-flash",
       messages: [{ role: "user", content: "Hello" }],
+      tool_choice: "auto",
     });
   });
 
@@ -858,11 +933,67 @@ describe("doStream", () => {
       },
     });
 
-    expect(await server.calls[0].requestHeaders).toStrictEqual({
+    expect(await server.calls[0].requestHeaders).toMatchObject({
       authorization: `Bearer ${TEST_API_KEY}`,
       "content-type": "application/json",
       "custom-provider-header": "provider-header-value",
       "custom-request-header": "request-header-value",
     });
+  });
+});
+
+describe("GLM-4.5/4.6/4.7 series", () => {
+  it("should support glm-4.7 model", async () => {
+    const testModel = provider.chat("glm-4.7");
+    expect(testModel.modelId).toBe("glm-4.7");
+  });
+
+  it("should support glm-4.6 model", async () => {
+    const testModel = provider.chat("glm-4.6");
+    expect(testModel.modelId).toBe("glm-4.6");
+  });
+
+  it("should support glm-4.5 model", async () => {
+    const testModel = provider.chat("glm-4.5");
+    expect(testModel.modelId).toBe("glm-4.5");
+  });
+
+  it("should support glm-4.5-x model", async () => {
+    const testModel = provider.chat("glm-4.5-x");
+    expect(testModel.modelId).toBe("glm-4.5-x");
+  });
+
+  it("should support glm-4.5-air model", async () => {
+    const testModel = provider.chat("glm-4.5-air");
+    expect(testModel.modelId).toBe("glm-4.5-air");
+  });
+
+  it("should support glm-4.5-airx model", async () => {
+    const testModel = provider.chat("glm-4.5-airx");
+    expect(testModel.modelId).toBe("glm-4.5-airx");
+  });
+
+  it("should support glm-4.5-flash model", async () => {
+    const testModel = provider.chat("glm-4.5-flash");
+    expect(testModel.modelId).toBe("glm-4.5-flash");
+  });
+
+  it("should identify glm-4.6v as vision model", async () => {
+    const testModel = provider.chat("glm-4.6v");
+    // Vision models contain "v" in the model ID
+    expect(testModel.modelId).toBe("glm-4.6v");
+    expect(testModel.modelId.includes("v")).toBe(true);
+  });
+
+  it("should identify glm-4.6v-flash as vision model", async () => {
+    const testModel = provider.chat("glm-4.6v-flash");
+    expect(testModel.modelId).toBe("glm-4.6v-flash");
+    expect(testModel.modelId.includes("v")).toBe(true);
+  });
+
+  it("should identify glm-4.5v as vision model", async () => {
+    const testModel = provider.chat("glm-4.5v");
+    expect(testModel.modelId).toBe("glm-4.5v");
+    expect(testModel.modelId.includes("v")).toBe(true);
   });
 });

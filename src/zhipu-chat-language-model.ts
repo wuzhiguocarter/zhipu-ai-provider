@@ -202,6 +202,11 @@ export class ZhipuChatLanguageModel implements LanguageModelV2 {
       user_id: this.settings.userId,
       do_sample: this.settings.doSample,
       request_id: this.settings.requestId,
+      thinking: this.settings.thinking
+        ? {
+            type: this.settings.thinking.type,
+          }
+        : undefined,
 
       // standardized settings:
       max_tokens: maxOutputTokens,

@@ -55,6 +55,42 @@ const { text } = await generateText({
 console.log(result)
 ```
 
+### Supported Language Models
+
+- **GLM-4.7** (Latest flagship, 200K context): `glm-4.7`
+- **GLM-4.6** (High performance, 200K context): `glm-4.6`
+- **GLM-4.5** (Excellent performance): `glm-4.5`, `glm-4.5-x`, `glm-4.5-air`, `glm-4.5-airx`, `glm-4.5-flash` (free)
+- **GLM-4.6V** (Vision reasoning): `glm-4.6v`, `glm-4.6v-flash` (free)
+- **GLM-4.5V** (Vision reasoning): `glm-4.5v`
+- **Legacy models**: `glm-4-plus`, `glm-4-air`, `glm-4-flash`, `glm-4-long`, `glm-4v`, `glm-z1-*`
+
+### Thinking Mode (GLM-4.5/4.6/4.7)
+
+GLM-4.5, GLM-4.6, and GLM-4.7 models support a "thinking mode" for complex reasoning:
+
+```ts
+import { generateText } from 'ai';
+import { zhipu } from 'zhipu-ai-provider';
+
+const { text } = await generateText({
+  model: zhipu('glm-4.7', {
+    thinking: { type: 'enabled' } // Enable deep thinking
+  }),
+  prompt: 'Explain quantum computing in detail',
+});
+
+// To disable thinking for faster responses:
+const { text: quickText } = await generateText({
+  model: zhipu('glm-4.7', {
+    thinking: { type: 'disabled' }
+  }),
+  prompt: 'What is 2+2?',
+});
+```
+
+- `thinking: { type: 'enabled' }` - Enable dynamic thinking based on task complexity (default for GLM-4.5+)
+- `thinking: { type: 'disabled' }` - Disable thinking for faster, more direct responses
+
 ## Embedding Example
 ```ts
 const { embedding } = await embed({
