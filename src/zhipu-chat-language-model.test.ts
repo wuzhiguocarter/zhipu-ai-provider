@@ -997,3 +997,276 @@ describe("GLM-4.5/4.6/4.7 series", () => {
     expect(testModel.modelId.includes("v")).toBe(true);
   });
 });
+
+describe("new parameters", () => {
+  describe("thinking.clear_thinking", () => {
+    it("should include clear_thinking when defined", async () => {
+      server.urls[
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+      ].response = {
+        type: "json-value",
+        body: {
+          id: "test",
+          object: "chat.completion",
+          created: 1711115037,
+          model: "glm-4.7",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: "Hi" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
+        },
+      };
+
+      const modelWithThinking = provider.chat("glm-4.7", {
+        thinking: { type: "enabled", clear_thinking: true },
+      });
+
+      await modelWithThinking.doGenerate({
+        prompt: TEST_PROMPT,
+      });
+
+      expect(await server.calls[0].requestBodyJson).toMatchObject({
+        thinking: {
+          type: "enabled",
+          clear_thinking: true,
+        },
+      });
+    });
+
+    it("should warn when clear_thinking used with unsupported model", async () => {
+      server.urls[
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+      ].response = {
+        type: "json-value",
+        body: {
+          id: "test",
+          object: "chat.completion",
+          created: 1711115037,
+          model: "glm-4-flash",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: "Hi" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
+        },
+      };
+
+      const modelUnsupported = provider.chat("glm-4-flash", {
+        thinking: { type: "enabled", clear_thinking: true },
+      });
+
+      const result = await modelUnsupported.doGenerate({
+        prompt: TEST_PROMPT,
+      });
+
+      expect(result.warnings).toContainEqual({
+        type: "unsupported-setting",
+        setting: "thinking.clear_thinking",
+        details:
+          "clear_thinking is only supported by GLM-4.5, GLM-4.6, and GLM-4.7 models.",
+      });
+    });
+  });
+
+  describe("toolStream", () => {
+    it("should include tool_stream when defined", async () => {
+      server.urls[
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+      ].response = {
+        type: "json-value",
+        body: {
+          id: "test",
+          object: "chat.completion",
+          created: 1711115037,
+          model: "glm-4.7",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: "Hi" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
+        },
+      };
+
+      const modelWithToolStream = provider.chat("glm-4.7", {
+        toolStream: true,
+      });
+
+      await modelWithToolStream.doGenerate({
+        prompt: TEST_PROMPT,
+      });
+
+      expect(await server.calls[0].requestBodyJson).toHaveProperty(
+        "tool_stream",
+        true,
+      );
+    });
+
+    it("should warn when toolStream used with unsupported model", async () => {
+      server.urls[
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+      ].response = {
+        type: "json-value",
+        body: {
+          id: "test",
+          object: "chat.completion",
+          created: 1711115037,
+          model: "glm-4-flash",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: "Hi" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
+        },
+      };
+
+      const modelUnsupported = provider.chat("glm-4-flash", {
+        toolStream: true,
+      });
+
+      const result = await modelUnsupported.doGenerate({
+        prompt: TEST_PROMPT,
+      });
+
+      expect(result.warnings).toContainEqual({
+        type: "unsupported-setting",
+        setting: "toolStream",
+        details: "tool_stream is only supported by GLM-4.7 and GLM-4.6 models.",
+      });
+    });
+  });
+
+  describe("response_format", () => {
+    it("should set response_format to json_object for json type", async () => {
+      server.urls[
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+      ].response = {
+        type: "json-value",
+        body: {
+          id: "test",
+          object: "chat.completion",
+          created: 1711115037,
+          model: "glm-4-flash",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: '{"result": "ok"}' },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
+        },
+      };
+
+      await model.doGenerate({
+        prompt: TEST_PROMPT,
+        responseFormat: { type: "json" },
+      });
+
+      expect(await server.calls[0].requestBodyJson).toMatchObject({
+        response_format: { type: "json_object" },
+      });
+    });
+
+    it("should set response_format to text for text type", async () => {
+      server.urls[
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+      ].response = {
+        type: "json-value",
+        body: {
+          id: "test",
+          object: "chat.completion",
+          created: 1711115037,
+          model: "glm-4-flash",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: "Hello" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
+        },
+      };
+
+      await model.doGenerate({
+        prompt: TEST_PROMPT,
+        responseFormat: { type: "text" },
+      });
+
+      expect(await server.calls[0].requestBodyJson).toMatchObject({
+        response_format: { type: "text" },
+      });
+    });
+
+    it("should not include response_format when undefined", async () => {
+      server.urls[
+        "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+      ].response = {
+        type: "json-value",
+        body: {
+          id: "test",
+          object: "chat.completion",
+          created: 1711115037,
+          model: "glm-4-flash",
+          choices: [
+            {
+              index: 0,
+              message: { role: "assistant", content: "Hello" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: {
+            prompt_tokens: 10,
+            completion_tokens: 5,
+            total_tokens: 15,
+          },
+        },
+      };
+
+      await model.doGenerate({
+        prompt: TEST_PROMPT,
+      });
+
+      expect(await server.calls[0].requestBodyJson).not.toHaveProperty(
+        "response_format",
+      );
+    });
+  });
+});

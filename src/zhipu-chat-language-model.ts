@@ -194,6 +194,31 @@ export class ZhipuChatLanguageModel implements LanguageModelV2 {
       });
     }
 
+    // clear_thinking 警告（仅 GLM-4.5/4.6/4.7 支持）
+    if (
+      this.settings.thinking?.clear_thinking !== undefined &&
+      !this.modelId.match(/^(glm-4\.[567]|glm-4\.5v)$/)
+    ) {
+      warnings.push({
+        type: "unsupported-setting",
+        setting: "thinking.clear_thinking",
+        details:
+          "clear_thinking is only supported by GLM-4.5, GLM-4.6, and GLM-4.7 models.",
+      });
+    }
+
+    // toolStream 警告（仅 GLM-4.6/4.7 支持）
+    if (
+      this.settings.toolStream !== undefined &&
+      !this.modelId.match(/^glm-4\.[67]/)
+    ) {
+      warnings.push({
+        type: "unsupported-setting",
+        setting: "toolStream",
+        details: "tool_stream is only supported by GLM-4.7 and GLM-4.6 models.",
+      });
+    }
+
     const baseArgs = {
       // model id:
       model: this.modelId,
@@ -205,6 +230,9 @@ export class ZhipuChatLanguageModel implements LanguageModelV2 {
       thinking: this.settings.thinking
         ? {
             type: this.settings.thinking.type,
+            ...(this.settings.thinking.clear_thinking !== undefined && {
+              clear_thinking: this.settings.thinking.clear_thinking,
+            }),
           }
         : undefined,
 
@@ -214,8 +242,14 @@ export class ZhipuChatLanguageModel implements LanguageModelV2 {
       top_p: topP,
 
       // response format:
-      response_format:
-        responseFormat?.type === "json" ? { type: "json_object" } : undefined,
+      response_format: responseFormat
+        ? {
+            type:
+              responseFormat.type === "json"
+                ? "json_object"
+                : "text",
+          }
+        : undefined,
 
       // messages:
       messages: convertToZhipuChatMessages(prompt),
@@ -235,6 +269,9 @@ export class ZhipuChatLanguageModel implements LanguageModelV2 {
           })) ?? undefined,
 
       // TODO: add provider-specific tool (web_search|retrieval)
+
+      // tool streaming:
+      tool_stream: this.settings.toolStream,
     };
 
     return {

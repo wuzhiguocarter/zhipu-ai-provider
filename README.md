@@ -74,7 +74,10 @@ import { zhipu } from 'zhipu-ai-provider';
 
 const { text } = await generateText({
   model: zhipu('glm-4.7', {
-    thinking: { type: 'enabled' } // Enable deep thinking
+    thinking: {
+      type: 'enabled',        // Enable deep thinking
+      clear_thinking: true    // Include reasoning process in response
+    }
   }),
   prompt: 'Explain quantum computing in detail',
 });
@@ -90,6 +93,58 @@ const { text: quickText } = await generateText({
 
 - `thinking: { type: 'enabled' }` - Enable dynamic thinking based on task complexity (default for GLM-4.5+)
 - `thinking: { type: 'disabled' }` - Disable thinking for faster, more direct responses
+- `thinking: { clear_thinking: true }` - Include the reasoning process in the response (`reasoning_content` field)
+- `thinking: { clear_thinking: false }` - Hide the reasoning process, only show final answer
+
+### Tool Streaming (GLM-4.6/4.7)
+
+GLM-4.7 and GLM-4.6 models support controlling tool call streaming:
+
+```ts
+const result = await generateText({
+  model: zhipu('glm-4.7', {
+    toolStream: true  // Stream tool call parameters
+  }),
+  tools: {
+    getWeather: {
+      description: 'Get weather information',
+      parameters: z.object({
+        city: z.string(),
+      }),
+      execute: async ({ city }) => `${city} Sunny 25°C`
+    }
+  },
+  prompt: 'What is the weather in Beijing today?'
+});
+```
+
+- `toolStream: true` - Tool call parameters are streamed in chunks for faster feedback
+- `toolStream: false` - Wait for complete tool call before returning
+
+### Response Format
+
+Control the output format of the model:
+
+```ts
+// JSON mode
+const { text } = await generateText({
+  model: zhipu('glm-4-flash'),
+  responseFormat: { type: 'json' },
+  prompt: 'List three fruits in JSON array format'
+});
+
+// Text mode (explicit)
+const { text } = await generateText({
+  model: zhipu('glm-4-flash'),
+  responseFormat: { type: 'text' },
+  prompt: 'Write a poem'
+});
+```
+
+- `{ type: 'text' }` - Plain text output (default)
+- `{ type: 'json' }` - JSON format output (text models only)
+
+**Note:** Vision and reasoning models do not support JSON format.
 
 ## Embedding Example
 ```ts
@@ -124,6 +179,35 @@ const { image, providerMetadata } = await generateImage({
 console.log(providerMetadata.zhipu.images[0].url)
 ```
 
+## Testing
+
+### Unit Tests
+The project includes comprehensive unit tests that use mock data and do not require API calls:
+
+```bash
+# Run all unit tests
+pnpm test src
+
+# Run specific test file
+pnpm test src/zhipu-chat-language-model.test.ts
+```
+
+### Integration Tests
+Integration tests use the real Zhipu AI API and require an API key:
+
+```bash
+# Set up your API key in .env file
+echo "ZHIPU_API_KEY=your-api-key-here" > .env
+
+# Run integration tests
+pnpm test:node
+
+# Run specific integration test
+pnpm test tests/integration/chat/thinking-mode.test.ts
+```
+
+**Note**: Integration tests consume API quota. See [tests/INTEGRATION_TEST_GUIDE.md](tests/INTEGRATION_TEST_GUIDE.md) for detailed information.
+
 ## Features Support
 - [x] Text generation
 - [x] Text embedding
@@ -141,4 +225,4 @@ console.log(providerMetadata.zhipu.images[0].url)
 ## Documentation
 - **[Zhipu documentation](https://bigmodel.cn/dev/welcome)** 
 - **[Vercel AI SDK documentation](https://sdk.vercel.ai/docs/introduction)**
-- **[Zhipu AI Provider Repo](https://github.com/Xiang-CH/zhipu-ai-provider)**
+- **[Zhipu AI Provider Repo](https://github.com/wuzhiguocarter/zhipu-ai-provider)**

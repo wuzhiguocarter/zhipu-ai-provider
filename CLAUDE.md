@@ -235,19 +235,28 @@ GLM-4.5、GLM-4.6 和 GLM-4.7 系列支持深度思考模式，通过 `thinking`
 
 ```typescript
 const model = zhipu('glm-4.7', {
-  thinking: { type: 'enabled' }
+  thinking: {
+    type: 'enabled',        // 启用思考模式
+    clear_thinking: true    // 包含思考过程
+  }
 })
 ```
 
-- **enabled**: 动态思考模式，根据任务复杂度自动调整（默认）
-- **disabled**: 禁用思考，直接响应
+**参数说明**：
+- `type: "enabled"` - 动态思考模式，根据任务复杂度自动调整（默认）
+- `type: "disabled"` - 禁用思考，直接响应
+- `clear_thinking: true` - 在响应中包含 `reasoning_content` 字段（思考过程）
+- `clear_thinking: false` - 隐藏思考过程，只返回最终答案
 
 API 请求格式：
 ```json
 {
   "model": "glm-4.7",
   "messages": [...],
-  "thinking": { "type": "enabled" }
+  "thinking": {
+    "type": "enabled",
+    "clear_thinking": true
+  }
 }
 ```
 
@@ -257,11 +266,66 @@ API 请求格式：
   "choices": [{
     "message": {
       "content": "最终回答",
-      "reasoning_content": "思考过程（仅推理模型）"
+      "reasoning_content": "思考过程（仅当 clear_thinking: true 时）"
     }
   }]
 }
 ```
+
+#### Tool Streaming（工具流式传输）
+
+GLM-4.7 和 GLM-4.6 系列支持工具调用的流式传输控制：
+
+```typescript
+const model = zhipu('glm-4.7', {
+  toolStream: true  // 工具调用流式传输
+})
+```
+
+API 请求格式：
+```json
+{
+  "model": "glm-4.7",
+  "messages": [...],
+  "tools": [...],
+  "tool_stream": true
+}
+```
+
+#### Response Format（响应格式）
+
+控制模型输出的格式：
+
+```typescript
+// 文本模式
+await generateText({
+  model: zhipu('glm-4-flash'),
+  responseFormat: { type: 'text' },
+  prompt: '写一个故事'
+})
+
+// JSON 模式
+await generateText({
+  model: zhipu('glm-4-flash'),
+  responseFormat: { type: 'json' },
+  prompt: '列出水果的 JSON 数组'
+})
+```
+
+API 请求格式：
+```json
+{
+  "model": "glm-4-flash",
+  "messages": [...],
+  "response_format": {
+    "type": "text"  // 或 "json_object"
+  }
+}
+```
+
+**限制**：
+- 视觉模型和推理模型不支持 JSON 格式
+- 使用 JSON 模式时，建议在提示词中明确说明需要 JSON 格式输出
 
 ### 限制与已知问题
 
@@ -297,7 +361,7 @@ pnpm publish --access public
 
 - [Zhipu AI 文档](https://bigmodel.cn/dev/welcome)
 - [Vercel AI SDK 文档](https://sdk.vercel.ai/docs/introduction)
-- [GitHub 仓库](https://github.com/Xiang-CH/zhipu-ai-provider)
+- [GitHub 仓库](https://github.com/wuzhiguocarter/zhipu-ai-provider)
 - [NPM 包](https://www.npmjs.com/package/zhipu-ai-provider)
 
 ---

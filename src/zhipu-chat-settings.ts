@@ -57,7 +57,7 @@ export interface ZhipuChatSettings {
    * @example
    * ```ts
    * const model = zhipu('glm-4.7', {
-   *   thinking: { type: 'enabled' }
+   *   thinking: { type: 'enabled', clear_thinking: true }
    * })
    * ```
    *
@@ -65,10 +65,37 @@ export interface ZhipuChatSettings {
    * Only supported by GLM-4.5, GLM-4.6, and GLM-4.7 models. When enabled, the model will use
    * chain-of-thought reasoning for complex tasks. Default is controlled by the API (usually "enabled").
    *
-   * - "enabled": Model uses dynamic thinking based on task complexity
-   * - "disabled": Model responds immediately without deep reasoning
+   * - `type: "enabled"`: Model uses dynamic thinking based on task complexity
+   * - `type: "disabled"`: Model responds immediately without deep reasoning
+   * - `clear_thinking: true`: Include reasoning content in the response (reasoning_content field)
+   * - `clear_thinking: false`: Hide reasoning content, only show final answer
    */
   thinking?: {
     type: "enabled" | "disabled";
+    /**
+     * Whether to include the reasoning process in the response.
+     * Only supported by GLM-4.5, GLM-4.6, and GLM-4.7 models.
+     * When true, the response includes a reasoning_content field with the model's thinking process.
+     */
+    clear_thinking?: boolean;
   };
+
+  /**
+   * Controls whether tool calls use streaming.
+   * Only supported by GLM-4.7 and GLM-4.6 models.
+   *
+   * @example
+   * ```ts
+   * const model = zhipu('glm-4.7', {
+   *   toolStream: true
+   * })
+   * ```
+   *
+   * @remarks
+   * - `true`: Tool calls are streamed in chunks (faster feedback)
+   * - `false`: Tool calls are returned in complete form (wait for full tool call)
+   *
+   * Default behavior is controlled by the API (typically true for streaming requests).
+   */
+  toolStream?: boolean;
 }

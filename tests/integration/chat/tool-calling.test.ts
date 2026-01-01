@@ -46,6 +46,25 @@ describe('聊天模型 - 工具调用', () => {
         expect(args.b).toBeDefined();
       }
     });
+
+    it('应该支持 tool_stream 参数', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4.7', {
+          toolStream: true,
+        }),
+        messages: [
+          {
+            role: 'user',
+            content: '使用计算器计算 50 乘以 2',
+          },
+        ],
+        tools: [testTools.calculator],
+      });
+
+      expect(result.toolCalls).toBeDefined();
+      expect(result.toolCalls.length).toBeGreaterThan(0);
+    });
   });
 
   describe('GLM-4.6 工具调用', () => {
@@ -57,6 +76,24 @@ describe('聊天模型 - 工具调用', () => {
           {
             role: 'user',
             content: '请使用计算器工具计算 5 乘以 6',
+          },
+        ],
+        tools: [testTools.calculator],
+      });
+
+      expect(result.toolCalls).toBeDefined();
+    });
+
+    it('应该支持 tool_stream 参数', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4.6', {
+          toolStream: false,
+        }),
+        messages: [
+          {
+            role: 'user',
+            content: '计算 20 加上 30',
           },
         ],
         tools: [testTools.calculator],

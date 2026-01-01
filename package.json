@@ -1,6 +1,6 @@
 {
   "name": "@wuzhiguocarter/zhipu-ai-provider",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Vercel AI SDK Custom Provider for Services from Zhipu",
   "author": "wuzhiguocarter <wuzhiguocarter@gmail.com>",
   "license": "Apache-2.0",
@@ -59,13 +59,13 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/Xiang-CH/zhipu-ai-provider",
+  "homepage": "https://github.com/wuzhiguocarter/zhipu-ai-provider",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Xiang-CH/zhipu-ai-provider.git"
+    "url": "git+https://github.com/wuzhiguocarter/zhipu-ai-provider.git"
   },
   "bugs": {
-    "url": "https://github.com/Xiang-CH/zhipu-ai-provider/issues"
+    "url": "https://github.com/wuzhiguocarter/zhipu-ai-provider/issues"
   },
   "keywords": [
     "zhipu",

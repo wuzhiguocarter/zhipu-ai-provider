@@ -23,6 +23,34 @@ describe('聊天模型 - Thinking 模式', () => {
       expect(duration).toBeGreaterThan(0);
     });
 
+    it('应该支持 clear_thinking 显示思考过程', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4.7', {
+          thinking: { type: 'enabled', clear_thinking: true },
+        }),
+        prompt: '解释为什么天空是蓝色的',
+      });
+
+      assertValidText(result.text, 50);
+      // clear_thinking: true 应该在响应中包含推理内容
+      // 注意：实际 API 响应中 reasoning_content 字段可能不在 text 中
+      // 这里我们主要验证请求能成功完成
+    });
+
+    it('应该支持 clear_thinking 隐藏思考过程', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4.7', {
+          thinking: { type: 'enabled', clear_thinking: false },
+        }),
+        prompt: '1+1等于几？',
+      });
+
+      assertValidText(result.text, 10);
+      // clear_thinking: false 应该只返回最终答案
+    });
+
     it('应该支持禁用 thinking.disabled', async () => {
       await delay();
       const startTime = Date.now();
@@ -60,6 +88,17 @@ describe('聊天模型 - Thinking 模式', () => {
       });
       assertValidText(result.text);
     });
+
+    it('应该支持 clear_thinking 参数', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4.6', {
+          thinking: { type: 'enabled', clear_thinking: true },
+        }),
+        prompt: '什么是 RESTful API？',
+      });
+      assertValidText(result.text, 50);
+    });
   });
 
   describe('GLM-4.5 Thinking 模式', () => {
@@ -72,6 +111,17 @@ describe('聊天模型 - Thinking 模式', () => {
         prompt: '什么是微服务架构？',
       });
       assertValidText(result.text);
+    });
+
+    it('应该支持 clear_thinking 参数', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4.5', {
+          thinking: { type: 'enabled', clear_thinking: true },
+        }),
+        prompt: '解释什么是 Docker',
+      });
+      assertValidText(result.text, 50);
     });
   });
 });

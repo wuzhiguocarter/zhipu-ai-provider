@@ -52,4 +52,40 @@ describe('聊天模型 - JSON 模式', () => {
       assertValidJSON(result.text);
     });
   });
+
+  describe('Response Format Text 模式', () => {
+    it('应该支持 responseFormat text 类型', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4-flash'),
+        prompt: '写一首关于春天的诗',
+        responseFormat: { type: 'text' },
+      });
+
+      assertValidText(result.text, 50);
+      // 确保返回的是普通文本，不是 JSON
+      expect(() => JSON.parse(result.text)).toThrow();
+    });
+
+    it('应该在 text 模式下返回自然语言', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4-flash'),
+        prompt: '请介绍一下你的功能',
+        responseFormat: { type: 'text' },
+      });
+
+      assertValidText(result.text, 30);
+    });
+
+    it('不设置 responseFormat 时应该正常工作', async () => {
+      await delay();
+      const result = await generateText({
+        model: provider('glm-4-flash'),
+        prompt: '什么是人工智能？',
+      });
+
+      assertValidText(result.text, 50);
+    });
+  });
 });
