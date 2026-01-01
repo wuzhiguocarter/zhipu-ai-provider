@@ -6,13 +6,13 @@ This is a [Zhipu](https://www.zhipuai.cn/) prodiver for the [AI SDK](https://sdk
 
 ```bash
 # npm
-npm i zhipu-ai-provider
+npm i @wuzhiguocarter/zhipu-ai-provider
 
 # pnpm
-pnpm add zhipu-ai-provider
+pnpm add @wuzhiguocarter/zhipu-ai-provider
 
 # yarn
-yarn add zhipu-ai-provider
+yarn add @wuzhiguocarter/zhipu-ai-provider
 ```
 Set up your `.env` file / environment with your API key.
 ```bash
@@ -22,11 +22,11 @@ ZHIPU_API_KEY=<your-api-key>
 ## Provider Instance
 You can import the default provider instance `zhipu` from `zhipu-ai-provider` (This automatically reads the API key from the environment variable `ZHIPU_API_KEY`):
 ```ts
-import { zhipu } from 'zhipu-ai-provider'
+import { zhipu } from '@wuzhiguocarter/zhipu-ai-provider'
 ```
 Alternatively, you can create a provider instance with custom configuration with `createZhipu`:
 ```ts
-import { createZhipu } from 'zhipu-ai-provider';
+import { createZhipu } from '@wuzhiguocarter/zhipu-ai-provider';
 
 const zhipu = createZhipu({
   baseURL: "https://open.bigmodel.cn/api/paas/v4",
@@ -45,7 +45,7 @@ You can use the following optional settings to customize the Zhipu provider inst
 
 ```ts
 import { generateText } from 'ai';
-import { zhipu } from 'zhipu-ai-provider';
+import { zhipu } from '@wuzhiguocarter/zhipu-ai-provider';
 
 const { text } = await generateText({
   model: zhipu('glm-4-plus'),
@@ -70,7 +70,7 @@ GLM-4.5, GLM-4.6, and GLM-4.7 models support a "thinking mode" for complex reaso
 
 ```ts
 import { generateText } from 'ai';
-import { zhipu } from 'zhipu-ai-provider';
+import { zhipu } from '@wuzhiguocarter/zhipu-ai-provider';
 
 const { text } = await generateText({
   model: zhipu('glm-4.7', {
@@ -163,7 +163,7 @@ Zhipu supports image generation with the `cogview` models, but the api does not 
 
 ```ts
 import { experimental_generateImage as generateImage } from 'ai';
-import { zhipu } from 'zhipu-ai-provider';
+import { zhipu } from '@wuzhiguocarter/zhipu-ai-provider';
 
 const { image, providerMetadata } = await generateImage({
   model: zhipu.ImageModel('cogview-4-250304'),
