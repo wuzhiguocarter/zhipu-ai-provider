@@ -255,7 +255,7 @@ export class ZhipuChatLanguageModel implements LanguageModelV2 {
       messages: convertToZhipuChatMessages(prompt),
 
       // tools:
-      tool_choice: toolChoice ?? "auto",
+      tool_choice: "auto",
       tools:
         tools
           ?.filter((tool) => tool.type === "function")
