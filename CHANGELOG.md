@@ -1,5 +1,9 @@
 # zhipu-ai-provider
 
+## 0.2.4
+### Docs
+- Updated package name references to scoped `@wuzhiguocarter/zhipu-ai-provider` in README.md
+
 ## [UNRELEASED]
 ### Added
 - Support for GLM-4.7 series models: `glm-4.7` (latest flagship, 200K context)
